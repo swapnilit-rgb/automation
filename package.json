@@ -1,0 +1,36 @@
+{
+  "name": "web-testing-(new)",
+  "version": "1.0.0",
+  "description": "Automation test for website",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:report": "playwright show-report",
+    "test:ui": "playwright test --ui"
+  },
+  "keywords": [
+    "playwright",
+    "automation",
+    "testing",
+    "binaytara",
+    "e2e"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.54.2",
+    "@types/node": "^24.3.0"
+  },
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {
+    "@browserbasehq/sdk": "^2.6.0",
+    "playwright": "^1.56.1",
+    "playwright-core": "^1.54.2",
+    "undici-types": "^7.10.0"
+  }
+}
