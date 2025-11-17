@@ -36,8 +36,10 @@ npm install
 ```
 
 ### **2. Run Tests**
+
+#### **Local Testing**
 ```bash
-# Run all tests
+# Run all tests locally
 npm test
 
 # Run tests with browser visible
@@ -52,6 +54,56 @@ npm run test:report
 # Run tests with Playwright UI
 npm run test:ui
 ```
+
+#### **Browserbase Cloud Testing** 🌐
+
+This project supports running tests on Browserbase cloud infrastructure. This is useful for:
+- Running tests in a consistent cloud environment
+- Viewing test replays and recordings
+- Running tests without local browser installation
+- CI/CD integration with cloud browsers
+
+**Setup:**
+
+1. **Get Browserbase Credentials:**
+   - Sign up at [Browserbase](https://www.browserbase.com/)
+   - Get your API Key from the dashboard
+   - Get your Project ID from the dashboard
+
+2. **Set Environment Variables:**
+   ```bash
+   export BROWSERBASE_API_KEY="your-api-key-here"
+   export BROWSERBASE_PROJECT_ID="your-project-id-here"
+   ```
+
+   Or create a `.env` file (make sure to add it to `.gitignore`):
+   ```
+   BROWSERBASE_API_KEY=your-api-key-here
+   BROWSERBASE_PROJECT_ID=your-project-id-here
+   ```
+
+3. **Run Tests on Browserbase:**
+   ```bash
+   # Run tests on Browserbase
+   npm run test:browserbase
+
+   # Run tests on Browserbase with browser visible
+   npm run test:browserbase:headed
+   ```
+
+   Or manually set environment variables:
+   ```bash
+   BROWSERBASE_API_KEY=your-key BROWSERBASE_PROJECT_ID=your-id npm test
+   ```
+
+**How It Works:**
+- When `BROWSERBASE_API_KEY` and `BROWSERBASE_PROJECT_ID` are set, the global setup automatically creates a Browserbase session
+- Playwright connects to the Browserbase browser via CDP (Chrome DevTools Protocol)
+- Tests run in the cloud browser instead of locally
+- After tests complete, you can view the replay at: `https://browserbase.com/sessions/{session-id}`
+- The session ID is displayed in the console output
+
+**Note:** When using Browserbase, tests run sequentially (single worker) to use a single browser session efficiently.
 
 ## 📊 **Test Suite Overview**
 
@@ -121,10 +173,17 @@ npm run test:ui
 ### **Playwright Configuration**
 The `playwright.config.js` file contains:
 - Browser configurations (Chromium, Firefox, WebKit)
-- Timeout settings (60 seconds for tests, 30 seconds for assertions)
-- Parallel test execution
+- Timeout settings (90 seconds for tests, 30 seconds for assertions)
+- Parallel test execution (disabled for Browserbase)
 - HTML, JSON, and JUnit reporting
 - Global setup and teardown
+- **Browserbase integration** - Automatically connects to Browserbase when credentials are provided
+
+### **Browserbase Configuration**
+The Browserbase integration is handled automatically:
+- **Global Setup** (`tests/global-setup.js`): Creates Browserbase session when API key is provided
+- **Global Teardown** (`tests/global-teardown.js`): Cleans up Browserbase session
+- **Playwright Config**: Automatically uses Browserbase connection when environment variables are set
 
 ### **Test Data**
 The `test-data.js` file contains:

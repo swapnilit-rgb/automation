@@ -1,4 +1,9 @@
-import { test, expect } from '@playwright/test';
+import { test as baseTest, expect, chromium } from '@playwright/test';
+import { readFileSync, existsSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+// Import ES modules
 import { HomePage } from './page-objects/HomePage.js';
 import { AboutPage } from './page-objects/AboutPage.js';
 import { ConferencesPage } from './page-objects/ConferencesPage.js';
@@ -6,7 +11,41 @@ import { CancerNewsPage } from './page-objects/CancerNewsPage.js';
 import { TestHelpers } from './utilities/helpers.js';
 import { testData, dataHelpers } from './test-data.js';
 
-test.describe.configure({ mode: 'parallel' });
+// Browserbase fixture - extend base test with Browserbase browser connection
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const test = baseTest.extend({
+  browser: async ({ browser }, use, testInfo) => {
+    // Check if Browserbase session file exists (created by global-setup)
+    const sessionFile = join(__dirname, '..', 'test-results', 'browserbase-session.json');
+    
+    if (existsSync(sessionFile)) {
+      try {
+        const sessionData = JSON.parse(readFileSync(sessionFile, 'utf8'));
+        const connectUrl = sessionData.connectUrl;
+        
+        if (connectUrl) {
+          console.log('🔌 Connecting to Browserbase...');
+          const browserbaseBrowser = await chromium.connectOverCDP(connectUrl);
+          console.log('✅ Connected to Browserbase');
+          
+          await use(browserbaseBrowser);
+          return;
+        }
+      } catch (error) {
+        console.error('❌ Failed to connect to Browserbase:', error.message);
+        console.log('⚠️  Falling back to local browser');
+      }
+    }
+    
+    // Use default browser
+    await use(browser);
+  },
+});
+
+// Configure test execution mode - disable parallel for Browserbase (handled in config)
+// test.describe.configure({ mode: 'parallel' }); // Commented out - controlled by playwright.config.js
 
 test.describe('Website', () => {
   

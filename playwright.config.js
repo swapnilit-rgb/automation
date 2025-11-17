@@ -1,17 +1,26 @@
-const { defineConfig, devices } = require('@playwright/test');
-module.exports = defineConfig({
+import { defineConfig, devices } from '@playwright/test';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Check if Browserbase is configured
+const isBrowserbase = !!(process.env.BROWSERBASE_API_KEY && process.env.BROWSERBASE_PROJECT_ID);
+
+export default defineConfig({
 
   testDir: './tests',
 
-  fullyParallel: true,
+  fullyParallel: !isBrowserbase, // Disable parallel execution for Browserbase (single session)
 
-  globalSetup: require.resolve('./tests/global-setup.js'),
-  globalTeardown: require.resolve('./tests/global-teardown.js'),
+  globalSetup: resolve(__dirname, './tests/global-setup.cjs'),
+  globalTeardown: resolve(__dirname, './tests/global-teardown.cjs'),
   
   
   retries: process.env.CI ? 2 : 0, /*retry 2 times in CI 0 in local*/
   
-  workers: process.env.CI ? 1 : undefined,
+  workers: isBrowserbase ? 1 : (process.env.CI ? 1 : undefined), // Single worker for Browserbase
   
   expect: {
     timeout: 30000, // 30 seconds
@@ -37,7 +46,9 @@ module.exports = defineConfig({
 
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] }, // Desktop Chrome configuration
+      use: { 
+        ...devices['Desktop Chrome'], // Desktop Chrome configuration
+      },
     },
 
     /**
